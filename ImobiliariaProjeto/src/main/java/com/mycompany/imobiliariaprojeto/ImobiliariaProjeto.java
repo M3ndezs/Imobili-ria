@@ -4,6 +4,9 @@
 
 package com.mycompany.imobiliariaprojeto;
 
+import DAO.Conexao;
+import View.Login;
+
 /**
  *
  * @author aluno.saolucas
@@ -11,6 +14,8 @@ package com.mycompany.imobiliariaprojeto;
 public class ImobiliariaProjeto {
 
     public static void main(String[] args) {
-        
+        Conexao.inicializarBanco();
+        Login tela = new Login();
+        tela.setVisible(true);
     }
 }

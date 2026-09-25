@@ -4,6 +4,13 @@
  */
 package View;
 
+import DAO.AdministradorDAO;
+import DAO.ClienteDAO;
+import DAO.ProprietarioDAO;
+import DAO.UsuarioDAO;
+import Model.Usuario;
+import javax.swing.JOptionPane;
+
 /**
  *
  * @author aluno.saolucas
@@ -18,7 +25,11 @@ public class Login extends javax.swing.JFrame {
     public Login() {
         initComponents();
     }
-
+private final Usuario usuario = new Usuario();
+private final UsuarioDAO usuarioDAO = new UsuarioDAO();
+private final AdministradorDAO administradorDAO = new AdministradorDAO();
+private final ProprietarioDAO proprietarioDAO = new ProprietarioDAO();
+private final ClienteDAO clienteDAO = new ClienteDAO();
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -34,6 +45,7 @@ public class Login extends javax.swing.JFrame {
         jLabel1 = new javax.swing.JLabel();
         txtSenha = new javax.swing.JTextField();
         btnEntrar = new javax.swing.JButton();
+        btnTelaCad = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -55,6 +67,10 @@ public class Login extends javax.swing.JFrame {
         btnEntrar.setText("Entrar");
         btnEntrar.addActionListener(this::btnEntrarActionPerformed);
 
+        btnTelaCad.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        btnTelaCad.setText("Cadastrar");
+        btnTelaCad.addActionListener(this::btnTelaCadActionPerformed);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -64,16 +80,18 @@ public class Login extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addGap(72, 72, 72)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(txtSenha, javax.swing.GroupLayout.PREFERRED_SIZE, 249, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(txtEmail, javax.swing.GroupLayout.PREFERRED_SIZE, 249, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                .addGroup(layout.createSequentialGroup()
+                                    .addComponent(btnEntrar, javax.swing.GroupLayout.PREFERRED_SIZE, 96, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(btnTelaCad, javax.swing.GroupLayout.PREFERRED_SIZE, 96, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(txtSenha, javax.swing.GroupLayout.PREFERRED_SIZE, 249, javax.swing.GroupLayout.PREFERRED_SIZE))))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(133, 133, 133)
-                        .addComponent(jLabel2))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(143, 143, 143)
-                        .addComponent(btnEntrar, javax.swing.GroupLayout.PREFERRED_SIZE, 96, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(jLabel2)))
                 .addContainerGap(88, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -89,9 +107,11 @@ public class Login extends javax.swing.JFrame {
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(txtSenha, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(36, 36, 36)
-                .addComponent(btnEntrar, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(47, Short.MAX_VALUE))
+                .addGap(35, 35, 35)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnEntrar, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnTelaCad, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(48, Short.MAX_VALUE))
         );
 
         pack();
@@ -106,8 +126,39 @@ public class Login extends javax.swing.JFrame {
     }//GEN-LAST:event_txtSenhaActionPerformed
 
     private void btnEntrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEntrarActionPerformed
-        // TODO add your handling code here:
+        String email = txtEmail.getText().trim();
+    String senha = txtSenha.getText().trim();
+
+    if (email.isEmpty() || senha.isEmpty()) {
+        JOptionPane.showMessageDialog(this, "Opa, algo deu errado! por favor, preencha e-mail e senha!");
+        return;
+    }
+
+    Usuario usuario = usuarioDAO.buscarPorEmail(email);
+
+    if (usuario == null || !usuario.fazerLogin(email, senha)) {
+        JOptionPane.showMessageDialog(this, "E-mail ou senha inválidos!");
+        return;
+    }
+
+    if (administradorDAO.buscarPorIdUsu(usuario.getId()) != null) {
+        new TelaADM().setVisible(true);
+    } else if (proprietarioDAO.buscarPorIdUsu(usuario.getId()) != null) {
+        new TelaBuscaPro(usuario).setVisible(true);
+    } else if (clienteDAO.buscarPorIdUsu(usuario.getId()) != null) {
+        new TelaBusca(usuario).setVisible(true);
+    } else {
+        JOptionPane.showMessageDialog(this, "Usuário sem papel definido (Cliente/Proprietário/Adm)!");
+        return;
+    }
+
+    this.dispose();
     }//GEN-LAST:event_btnEntrarActionPerformed
+
+    private void btnTelaCadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTelaCadActionPerformed
+         new CadastroADM().setVisible(true); // cria e mostra a nova janela
+    this.dispose(); 
+    }//GEN-LAST:event_btnTelaCadActionPerformed
 
     /**
      * @param args the command line arguments
@@ -136,6 +187,7 @@ public class Login extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnEntrar;
+    private javax.swing.JButton btnTelaCad;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;

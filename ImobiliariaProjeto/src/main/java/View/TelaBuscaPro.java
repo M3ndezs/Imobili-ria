@@ -4,6 +4,19 @@
  */
 package View;
 
+import DAO.ClienteDAO;
+import DAO.ImovelDAO;
+import DAO.ProprietarioDAO;
+import DAO.VisitaDAO;
+import Model.Cliente;
+import Model.Imovel;
+import Model.Proprietario;
+import Model.Usuario;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
+
 /**
  *
  * @author aluno.saolucas
@@ -12,10 +25,15 @@ public class TelaBuscaPro extends javax.swing.JFrame {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(TelaBuscaPro.class.getName());
 
-    /**
-     * Creates new form TelaBusca
-     */
-    public TelaBuscaPro() {
+    private final ImovelDAO imovelDAO = new ImovelDAO();
+    private final ProprietarioDAO proprietarioDAO = new ProprietarioDAO();
+
+    private final Usuario usuarioLogado;
+    private Proprietario proprietario;
+    private List<Imovel> imoveisCarregados;
+
+    public TelaBuscaPro(Usuario usuarioLogado) {
+        this.usuarioLogado = usuarioLogado;
         initComponents();
     }
 
@@ -104,15 +122,55 @@ public class TelaBuscaPro extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+    
+    private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
+        proprietario = proprietarioDAO.buscarPorIdUsu(usuarioLogado.getId());
 
+        if (proprietario == null) {
+            JOptionPane.showMessageDialog(this, "Opa, algo deu errado! usuário logado não é um proprietário cadastrado!");
+            return;
+        }
+
+        carregarTabela(imovelDAO.listarPorProprietario(proprietario.getIdProprietario()));
+    }
+    
     private void btnBuscarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBuscarActionPerformed
-        // TODO add your handling code here:
+        if (proprietario == null) return;
+
+        String termo = txtBuscar.getText().trim().toLowerCase();
+        List<Imovel> todosDoProprietario = imovelDAO.listarPorProprietario(proprietario.getIdProprietario());
+
+        if (termo.isEmpty()) {
+            carregarTabela(todosDoProprietario);
+            return;
+        }
+
+        List<Imovel> filtrados = new ArrayList<>();
+        for (Imovel im : todosDoProprietario) {
+            if (im.getDescricao().toLowerCase().contains(termo) || im.getEndereco().toLowerCase().contains(termo)) {
+                filtrados.add(im);
+            }
+        }
+        carregarTabela(filtrados);
     }//GEN-LAST:event_btnBuscarActionPerformed
 
     private void btnConfigActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnConfigActionPerformed
-        // TODO add your handling code here:
+         new CadImovel().setVisible(true);
     }//GEN-LAST:event_btnConfigActionPerformed
 
+     private void carregarTabela(List<Imovel> imoveis) {
+        imoveisCarregados = imoveis;
+
+        DefaultTableModel modelo = (DefaultTableModel) tbImovel.getModel();
+        modelo.setRowCount(0);
+
+        for (Imovel im : imoveis) {
+            modelo.addRow(new Object[]{
+                    im.getDescricao(), im.getEndereco(), im.getTipoDescricao(),
+                    im.getStatusDescricao(), im.getPreco()
+            });
+        }
+    }
     /**
      * @param args the command line arguments
      */
@@ -134,8 +192,9 @@ public class TelaBuscaPro extends javax.swing.JFrame {
         }
         //</editor-fold>
 
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(() -> new TelaBuscaPro().setVisible(true));
+Usuario usuarioLogado = new Usuario();
+
+java.awt.EventQueue.invokeLater(() -> { new TelaBuscaPro(usuarioLogado).setVisible(true);});
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -147,4 +206,6 @@ public class TelaBuscaPro extends javax.swing.JFrame {
     private javax.swing.JTable tbImovel;
     private javax.swing.JTextField txtBuscar;
     // End of variables declaration//GEN-END:variables
+
+
 }

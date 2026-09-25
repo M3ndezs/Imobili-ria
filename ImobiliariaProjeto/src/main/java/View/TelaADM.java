@@ -4,6 +4,15 @@
  */
 package View;
 
+import DAO.AdministradorDAO;
+import DAO.ClienteDAO;
+import DAO.ProprietarioDAO;
+import DAO.UsuarioDAO;
+import Model.Usuario;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.table.DefaultTableModel;
+
 /**
  *
  * @author aluno.saolucas
@@ -18,7 +27,12 @@ public class TelaADM extends javax.swing.JFrame {
     public TelaADM() {
         initComponents();
     }
-
+private List<Usuario> usuariosCarregados;   // guarda o objeto Usuario completo de cada linha
+private List<String> papeisCarregados; 
+private final UsuarioDAO usuarioDAO = new UsuarioDAO();
+private final AdministradorDAO administradorDAO = new AdministradorDAO();
+private final ProprietarioDAO proprietarioDAO = new ProprietarioDAO();
+private final ClienteDAO clienteDAO = new ClienteDAO();
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -32,10 +46,10 @@ public class TelaADM extends javax.swing.JFrame {
         txtNome = new javax.swing.JTextField();
         txtEmail = new javax.swing.JTextField();
         txtSenha = new javax.swing.JTextField();
-        txtTele = new javax.swing.JTextField();
+        txtTel = new javax.swing.JTextField();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
-        chkPapel = new javax.swing.JComboBox<>();
+        tbUsu = new javax.swing.JTable();
+        cbPapel = new javax.swing.JComboBox<>();
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
@@ -52,7 +66,7 @@ public class TelaADM extends javax.swing.JFrame {
 
         txtNome.addActionListener(this::txtNomeActionPerformed);
 
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+        tbUsu.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null},
                 {null, null, null, null},
@@ -63,10 +77,15 @@ public class TelaADM extends javax.swing.JFrame {
                 "Nome", "Email", "Telefone", "Papel"
             }
         ));
-        jScrollPane1.setViewportView(jTable1);
+        tbUsu.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tbUsuMouseClicked(evt);
+            }
+        });
+        jScrollPane1.setViewportView(tbUsu);
 
-        chkPapel.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Cliente", "Proprietário", "Administrador" }));
-        chkPapel.addActionListener(this::chkPapelActionPerformed);
+        cbPapel.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Cliente", "Proprietário", "Administrador" }));
+        cbPapel.addActionListener(this::cbPapelActionPerformed);
 
         jLabel3.setFont(new java.awt.Font("Yu Gothic UI Semibold", 3, 14)); // NOI18N
         jLabel3.setText("Nome");
@@ -111,9 +130,9 @@ public class TelaADM extends javax.swing.JFrame {
                         .addComponent(txtNome)
                         .addComponent(txtEmail)
                         .addComponent(txtSenha)
-                        .addComponent(txtTele, javax.swing.GroupLayout.DEFAULT_SIZE, 216, Short.MAX_VALUE))
+                        .addComponent(txtTel, javax.swing.GroupLayout.DEFAULT_SIZE, 216, Short.MAX_VALUE))
                     .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 167, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(chkPapel, javax.swing.GroupLayout.PREFERRED_SIZE, 141, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(cbPapel, javax.swing.GroupLayout.PREFERRED_SIZE, 141, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 22, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -145,7 +164,7 @@ public class TelaADM extends javax.swing.JFrame {
                         .addGap(19, 19, 19)
                         .addComponent(jLabel6)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(txtTele, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(txtTel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(20, 20, 20)
                         .addComponent(jLabel2)
@@ -155,7 +174,7 @@ public class TelaADM extends javax.swing.JFrame {
                 .addComponent(jLabel7)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(chkPapel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(cbPapel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnCadUsu)
                     .addComponent(btnEditarUsu)
                     .addComponent(btnExcluirUsu))
@@ -169,9 +188,22 @@ public class TelaADM extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_txtNomeActionPerformed
 
-    private void chkPapelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chkPapelActionPerformed
+    private void cbPapelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbPapelActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_chkPapelActionPerformed
+    }//GEN-LAST:event_cbPapelActionPerformed
+
+    private void tbUsuMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tbUsuMouseClicked
+         Usuario selecionado = usuarioSelecionado();
+    if (selecionado == null) return;
+
+    txtNome.setText(selecionado.getNome());
+    txtEmail.setText(selecionado.getEmail());
+    txtTel.setText(selecionado.getTelefone());
+    txtSenha.setText("");
+
+    int linha = tbUsu.getSelectedRow();
+    cbPapel.setSelectedItem(papeisCarregados.get(linha));
+    }//GEN-LAST:event_tbUsuMouseClicked
 
     /**
      * @param args the command line arguments
@@ -197,12 +229,44 @@ public class TelaADM extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> new TelaADM().setVisible(true));
     }
+private void carregarTabela() {
+    usuariosCarregados = usuarioDAO.listar();
+    papeisCarregados = new ArrayList<>();
 
+    DefaultTableModel modelo = (DefaultTableModel) tbUsu.getModel();
+    modelo.setRowCount(0);
+
+    for (Usuario u : usuariosCarregados) {
+        String papel;
+        if (administradorDAO.buscarPorIdUsu(u.getId()) != null) papel = "Administrador";
+        else if (proprietarioDAO.buscarPorIdUsu(u.getId()) != null) papel = "Proprietário";
+        else if (clienteDAO.buscarPorIdUsu(u.getId()) != null) papel = "Cliente";
+        else papel = "Sem papel";
+
+        papeisCarregados.add(papel);
+        modelo.addRow(new Object[]{ u.getNome(), u.getEmail(), u.getTelefone(), papel });
+    }
+}
+
+private Usuario usuarioSelecionado() {
+    int linha = tbUsu.getSelectedRow();
+    if (linha == -1 || usuariosCarregados == null || linha >= usuariosCarregados.size()) {
+        return null;
+    }
+    return usuariosCarregados.get(linha);
+}
+
+private void limparCampos() {
+    txtNome.setText("");
+    txtEmail.setText("");
+    txtSenha.setText("");
+    txtTel.setText("");
+}
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnCadUsu;
     private javax.swing.JButton btnEditarUsu;
     private javax.swing.JButton btnExcluirUsu;
-    private javax.swing.JComboBox<String> chkPapel;
+    private javax.swing.JComboBox<String> cbPapel;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -210,10 +274,10 @@ public class TelaADM extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTable jTable1;
+    private javax.swing.JTable tbUsu;
     private javax.swing.JTextField txtEmail;
     private javax.swing.JTextField txtNome;
     private javax.swing.JTextField txtSenha;
-    private javax.swing.JTextField txtTele;
+    private javax.swing.JTextField txtTel;
     // End of variables declaration//GEN-END:variables
 }

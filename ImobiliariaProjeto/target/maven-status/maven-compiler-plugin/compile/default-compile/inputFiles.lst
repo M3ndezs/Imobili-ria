@@ -1,4 +1,10 @@
 C:\Users\aluno.saolucas\Documents\NetBeansProjects\ImobiliariaProjeto\src\main\java\com\mycompany\imobiliariaprojeto\ImobiliariaProjeto.java
+C:\Users\aluno.saolucas\Documents\NetBeansProjects\ImobiliariaProjeto\src\main\java\Controller\AdministradorController.java
+C:\Users\aluno.saolucas\Documents\NetBeansProjects\ImobiliariaProjeto\src\main\java\Controller\ClienteController.java
+C:\Users\aluno.saolucas\Documents\NetBeansProjects\ImobiliariaProjeto\src\main\java\Controller\ImovelController.java
+C:\Users\aluno.saolucas\Documents\NetBeansProjects\ImobiliariaProjeto\src\main\java\Controller\ProprietarioController.java
+C:\Users\aluno.saolucas\Documents\NetBeansProjects\ImobiliariaProjeto\src\main\java\Controller\UsuarioController.java
+C:\Users\aluno.saolucas\Documents\NetBeansProjects\ImobiliariaProjeto\src\main\java\Controller\VisitaController.java
 C:\Users\aluno.saolucas\Documents\NetBeansProjects\ImobiliariaProjeto\src\main\java\DAO\AdministradorDAO.java
 C:\Users\aluno.saolucas\Documents\NetBeansProjects\ImobiliariaProjeto\src\main\java\DAO\ClienteDAO.java
 C:\Users\aluno.saolucas\Documents\NetBeansProjects\ImobiliariaProjeto\src\main\java\DAO\Conexao.java
@@ -12,8 +18,9 @@ C:\Users\aluno.saolucas\Documents\NetBeansProjects\ImobiliariaProjeto\src\main\j
 C:\Users\aluno.saolucas\Documents\NetBeansProjects\ImobiliariaProjeto\src\main\java\Model\Proprietario.java
 C:\Users\aluno.saolucas\Documents\NetBeansProjects\ImobiliariaProjeto\src\main\java\Model\Usuario.java
 C:\Users\aluno.saolucas\Documents\NetBeansProjects\ImobiliariaProjeto\src\main\java\Model\Visita.java
-C:\Users\aluno.saolucas\Documents\NetBeansProjects\ImobiliariaProjeto\src\main\java\View\Cadastro.java
+C:\Users\aluno.saolucas\Documents\NetBeansProjects\ImobiliariaProjeto\src\main\java\View\CadastroADM.java
 C:\Users\aluno.saolucas\Documents\NetBeansProjects\ImobiliariaProjeto\src\main\java\View\CadImovel.java
 C:\Users\aluno.saolucas\Documents\NetBeansProjects\ImobiliariaProjeto\src\main\java\View\Login.java
+C:\Users\aluno.saolucas\Documents\NetBeansProjects\ImobiliariaProjeto\src\main\java\View\TelaADM.java
 C:\Users\aluno.saolucas\Documents\NetBeansProjects\ImobiliariaProjeto\src\main\java\View\TelaBusca.java
 C:\Users\aluno.saolucas\Documents\NetBeansProjects\ImobiliariaProjeto\src\main\java\View\TelaBuscaPro.java

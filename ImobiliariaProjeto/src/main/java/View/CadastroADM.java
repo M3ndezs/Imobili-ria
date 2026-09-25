@@ -4,12 +4,18 @@
  */
 package View;
 
+import DAO.AdministradorDAO;
+import DAO.UsuarioDAO;
+import Model.Administrador;
+import Model.Usuario;
+import javax.swing.JOptionPane;
+
 /**
  *
  * @author aluno.saolucas
  */
 public class CadastroADM extends javax.swing.JFrame {
-    
+
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(CadastroADM.class.getName());
 
     /**
@@ -17,7 +23,10 @@ public class CadastroADM extends javax.swing.JFrame {
      */
     public CadastroADM() {
         initComponents();
+
     }
+    private final UsuarioDAO usuarioDAO = new UsuarioDAO();
+    private final AdministradorDAO administradorDAO = new AdministradorDAO();
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -33,19 +42,21 @@ public class CadastroADM extends javax.swing.JFrame {
         txtEmail = new javax.swing.JTextField();
         txtSenha = new javax.swing.JTextField();
         txtTel = new javax.swing.JTextField();
-        jButton1 = new javax.swing.JButton();
+        btnCriar = new javax.swing.JButton();
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
+        btnTelaLogin = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         jLabel2.setFont(new java.awt.Font("Yu Gothic UI Semibold", 3, 24)); // NOI18N
         jLabel2.setText("Cadastro Administrador");
 
-        jButton1.setFont(new java.awt.Font("Segoe UI Semilight", 3, 18)); // NOI18N
-        jButton1.setText("Criar");
+        btnCriar.setFont(new java.awt.Font("Segoe UI Semilight", 3, 18)); // NOI18N
+        btnCriar.setText("Criar");
+        btnCriar.addActionListener(this::btnCriarActionPerformed);
 
         jLabel3.setFont(new java.awt.Font("Yu Gothic UI Semibold", 3, 14)); // NOI18N
         jLabel3.setText("Nome");
@@ -59,14 +70,14 @@ public class CadastroADM extends javax.swing.JFrame {
         jLabel6.setFont(new java.awt.Font("Yu Gothic UI Semibold", 3, 14)); // NOI18N
         jLabel6.setText("Email");
 
+        btnTelaLogin.setFont(new java.awt.Font("Segoe UI Semilight", 3, 18)); // NOI18N
+        btnTelaLogin.setText("Login");
+        btnTelaLogin.addActionListener(this::btnTelaLoginActionPerformed);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(213, 213, 213)
-                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 154, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 269, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -74,6 +85,10 @@ public class CadastroADM extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addGap(62, 62, 62)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(btnCriar, javax.swing.GroupLayout.PREFERRED_SIZE, 154, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btnTelaLogin, javax.swing.GroupLayout.PREFERRED_SIZE, 154, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, 208, Short.MAX_VALUE)
@@ -113,13 +128,51 @@ public class CadastroADM extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(txtSenha, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(txtTel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(65, 65, 65)
-                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(68, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 70, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnCriar, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnTelaLogin, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(63, 63, 63))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void btnCriarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCriarActionPerformed
+        String nome = txtNome.getText().trim();
+        String email = txtEmail.getText().trim();
+        String senha = txtSenha.getText().trim();
+        String telefone = txtTel.getText().trim();
+
+        if (txtNome.getText().trim().isEmpty()
+                || txtEmail.getText().trim().isEmpty()
+                || txtSenha.getText().trim().isEmpty()
+                || txtTel.getText().trim().isEmpty()) {
+
+            JOptionPane.showMessageDialog(this, "Opa, algo deu errado! por favor, preencha todos os campos obrigatórios!");
+
+            return;
+        }
+        Usuario novoUsuario = new Usuario(0, nome, email, senha, telefone);
+
+        usuarioDAO.cadastrar(novoUsuario);
+        administradorDAO.cadastrar(new Administrador(0, novoUsuario));
+
+        JOptionPane.showMessageDialog(this, "Administrador " + novoUsuario.getNome() + " cadastrado com sucesso!");
+
+        txtNome.setText("");
+        txtEmail.setText("");
+        txtSenha.setText("");
+        txtTel.setText("");
+
+        new TelaADM().setVisible(true);
+        this.dispose();
+
+    }//GEN-LAST:event_btnCriarActionPerformed
+
+    private void btnTelaLoginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTelaLoginActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnTelaLoginActionPerformed
 
     /**
      * @param args the command line arguments
@@ -147,7 +200,8 @@ public class CadastroADM extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
+    private javax.swing.JButton btnCriar;
+    private javax.swing.JButton btnTelaLogin;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;

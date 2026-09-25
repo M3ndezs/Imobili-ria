@@ -16,6 +16,12 @@ public class Usuario {
     private String senha;
     private String telefone;
 
+    public boolean fazerLogin(String emailDigitado, String senhaDigitada) {
+        return this.email != null && this.senha != null
+                && this.email.equalsIgnoreCase(emailDigitado)
+                && this.senha.equals(senhaDigitada);
+    }
+
     public Usuario() {
     }
 
@@ -85,7 +91,5 @@ public class Usuario {
             return papel;
         }
 
-        
-        
     }
 }
