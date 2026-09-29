@@ -144,18 +144,19 @@ public class CadastroADM extends javax.swing.JFrame {
         String senha = txtSenha.getText().trim();
         String telefone = txtTel.getText().trim();
 
-        if (txtNome.getText().trim().isEmpty()
-                || txtEmail.getText().trim().isEmpty()
-                || txtSenha.getText().trim().isEmpty()
-                || txtTel.getText().trim().isEmpty()) {
-
+        if (nome.isEmpty() || email.isEmpty() || senha.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Opa, algo deu errado! por favor, preencha todos os campos obrigatórios!");
-
             return;
         }
+
         Usuario novoUsuario = new Usuario(0, nome, email, senha, telefone);
 
-        usuarioDAO.cadastrar(novoUsuario);
+        boolean sucesso = usuarioDAO.cadastrar(novoUsuario);
+        if (!sucesso) {
+            JOptionPane.showMessageDialog(this, "Não foi possível cadastrar. Esse e-mail já está em uso!");
+            return;
+        }
+
         administradorDAO.cadastrar(new Administrador(0, novoUsuario));
 
         JOptionPane.showMessageDialog(this, "Administrador " + novoUsuario.getNome() + " cadastrado com sucesso!");
@@ -165,13 +166,14 @@ public class CadastroADM extends javax.swing.JFrame {
         txtSenha.setText("");
         txtTel.setText("");
 
-        new TelaADM().setVisible(true);
+        new Login().setVisible(true);
         this.dispose();
 
     }//GEN-LAST:event_btnCriarActionPerformed
 
     private void btnTelaLoginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTelaLoginActionPerformed
-        // TODO add your handling code here:
+        new Login().setVisible(true); // cria e mostra a nova janela
+        this.dispose();
     }//GEN-LAST:event_btnTelaLoginActionPerformed
 
     /**

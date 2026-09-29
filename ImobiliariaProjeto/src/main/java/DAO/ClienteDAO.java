@@ -10,6 +10,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 
 
@@ -71,4 +73,22 @@ public class ClienteDAO {
                 resultado.getString("telefone"));
         return new Cliente(resultado.getInt("idCliente"), usuario);
     }
+      
+      public List<Cliente> listarTodos() {
+    List<Cliente> lista = new ArrayList<>();
+    String sql = "SELECT c.id AS idCliente, u.* FROM cliente c "
+            + "JOIN usuario u ON u.id = c.idUsu";
+
+    try (Connection conexao = Conexao.conectar();
+         PreparedStatement comando = conexao.prepareStatement(sql);
+         ResultSet resultado = comando.executeQuery()) {
+
+        while (resultado.next()) lista.add(mapear(resultado));
+
+    } catch (SQLException e) {
+        System.out.println("Erro ao listar clientes: " + e.getMessage());
+    }
+    return lista;
+}
+      
 }

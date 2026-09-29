@@ -10,6 +10,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ProprietarioDAO {
 
@@ -66,4 +68,21 @@ public class ProprietarioDAO {
         return new Proprietario(resultado.getInt("idProprietario"), usuario);
     }
 
+    public List<Proprietario> listarTodos() {
+    List<Proprietario> lista = new ArrayList<>();
+    String sql = "SELECT p.id AS idProprietario, u.* FROM proprietario p "
+            + "JOIN usuario u ON u.id = p.idUsu";
+
+    try (Connection conexao = Conexao.conectar();
+         PreparedStatement comando = conexao.prepareStatement(sql);
+         ResultSet resultado = comando.executeQuery()) {
+
+        while (resultado.next()) lista.add(mapear(resultado));
+
+    } catch (SQLException e) {
+        System.out.println("Erro ao listar proprietários: " + e.getMessage());
+    }
+    return lista;
+}
+    
 }

@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,84 +18,92 @@ import java.util.List;
  * @author aluno.saolucas
  */
 public class ImovelDAO {
-      public void cadastrar(Imovel imovel) {
+
+    public boolean cadastrar(Imovel imovel) {
         String sql = "INSERT INTO imovel (idProp, descricao, tipo, preco, endereco, status) VALUES (?,?,?,?,?,?)";
 
-        try (Connection conexao = Conexao.conectar();
-             PreparedStatement comando = conexao.prepareStatement(sql)) {
+        try (Connection conexao = Conexao.conectar(); PreparedStatement comando = conexao.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             preencher(comando, imovel);
             comando.executeUpdate();
 
+            try (ResultSet chaves = comando.getGeneratedKeys()) {
+                if (chaves.next()) {
+                    imovel.setIdImovel(chaves.getInt(1));
+                }
+            }
+
             System.out.println("Imóvel cadastrado com sucesso!");
+            return true;
         } catch (SQLException e) {
             System.out.println("Erro ao cadastrar imóvel: " + e.getMessage());
+            return false;
         }
     }
-      
 
-    public void alterar(Imovel imovel) {
+    public boolean alterar(Imovel imovel) {
         String sql = "UPDATE imovel SET idProp=?, descricao=?, tipo=?, preco=?, endereco=?, status=? WHERE id=?";
 
-        try (Connection conexao = Conexao.conectar();
-             PreparedStatement comando = conexao.prepareStatement(sql)) {
+        try (Connection conexao = Conexao.conectar(); PreparedStatement comando = conexao.prepareStatement(sql)) {
 
             preencher(comando, imovel);
             comando.setInt(7, imovel.getIdImovel());
             comando.executeUpdate();
 
             System.out.println("Imóvel atualizado com sucesso!");
+            return true;
         } catch (SQLException e) {
             System.out.println("Erro ao atualizar imóvel: " + e.getMessage());
+            return false;
         }
     }
-    
 
-    public void excluir(int id) {
+    public boolean excluir(int idImovel) {
         String sql = "DELETE FROM imovel WHERE id = ?";
 
-        try (Connection conexao = Conexao.conectar();
-             PreparedStatement comando = conexao.prepareStatement(sql)) {
+        try (Connection conexao = Conexao.conectar(); PreparedStatement comando = conexao.prepareStatement(sql)) {
 
-            comando.setInt(1, id);
+            comando.setInt(1, idImovel);
             comando.executeUpdate();
 
             System.out.println("Imóvel excluído com sucesso!");
+            return true;
         } catch (SQLException e) {
             System.out.println("Erro ao excluir imóvel: " + e.getMessage());
+            return false;
         }
     }
 
     public List<Imovel> buscar(String termo) {
-        List<Imovel> imoveis = new ArrayList<>();
-        String sql = "SELECT * FROM imovel WHERE (descricao LIKE ? OR endereco LIKE ?) AND status = 1";
+    List<Imovel> imoveis = new ArrayList<>();
+    String sql = "SELECT * FROM imovel WHERE descricao LIKE ? AND status = 1";
 
-        try (Connection conexao = Conexao.conectar();
-             PreparedStatement comando = conexao.prepareStatement(sql)) {
+    try (Connection conexao = Conexao.conectar();
+         PreparedStatement comando = conexao.prepareStatement(sql)) {
 
-            String like = "%" + termo + "%";
-            comando.setString(1, like);
-            comando.setString(2, like);
+        String like = "%" + termo + "%";
+        comando.setString(1, like);
 
-            try (ResultSet resultado = comando.executeQuery()) {
-                while (resultado.next()) imoveis.add(mapear(resultado));
-            }
-        } catch (SQLException e) {
-            System.out.println("Erro ao buscar imóveis: " + e.getMessage());
+        try (ResultSet resultado = comando.executeQuery()) {
+            while (resultado.next()) imoveis.add(mapear(resultado));
         }
-        return imoveis;
+    } catch (SQLException e) {
+        System.out.println("Erro ao buscar imóveis: " + e.getMessage());
     }
+    return imoveis;
+}
 
     public List<Imovel> listarPorProprietario(int idProp) {
         List<Imovel> imoveis = new ArrayList<>();
         String sql = "SELECT * FROM imovel WHERE idProp = ?";
 
-        try (Connection conexao = Conexao.conectar();
-             PreparedStatement comando = conexao.prepareStatement(sql)) {
+        try (Connection conexao = Conexao.conectar(); PreparedStatement comando = conexao.prepareStatement(sql)) {
 
             comando.setInt(1, idProp);
             try (ResultSet resultado = comando.executeQuery()) {
-                while (resultado.next()) imoveis.add(mapear(resultado));
+                while (resultado.next()) {
+                    imoveis.add(mapear(resultado));
+                }
             }
         } catch (SQLException e) {
             System.out.println("Erro ao listar imóveis do proprietário: " + e.getMessage());
@@ -106,11 +115,11 @@ public class ImovelDAO {
         List<Imovel> imoveis = new ArrayList<>();
         String sql = "SELECT * FROM imovel";
 
-        try (Connection conexao = Conexao.conectar();
-             PreparedStatement comando = conexao.prepareStatement(sql);
-             ResultSet resultado = comando.executeQuery()) {
+        try (Connection conexao = Conexao.conectar(); PreparedStatement comando = conexao.prepareStatement(sql); ResultSet resultado = comando.executeQuery()) {
 
-            while (resultado.next()) imoveis.add(mapear(resultado));
+            while (resultado.next()) {
+                imoveis.add(mapear(resultado));
+            }
 
         } catch (SQLException e) {
             System.out.println("Erro ao listar imóveis: " + e.getMessage());
@@ -138,6 +147,5 @@ public class ImovelDAO {
                 resultado.getBoolean("status")
         );
     }
-    
-    
+
 }

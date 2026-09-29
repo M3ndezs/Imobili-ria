@@ -22,7 +22,7 @@ import javax.swing.table.DefaultTableModel;
  * @author aluno.saolucas
  */
 public class TelaBuscaPro extends javax.swing.JFrame {
-    
+
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(TelaBuscaPro.class.getName());
 
     private final ImovelDAO imovelDAO = new ImovelDAO();
@@ -122,8 +122,8 @@ public class TelaBuscaPro extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-    
-    private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
+
+    private void formWindowOpened(java.awt.event.WindowEvent evt) {
         proprietario = proprietarioDAO.buscarPorIdUsu(usuarioLogado.getId());
 
         if (proprietario == null) {
@@ -133,9 +133,11 @@ public class TelaBuscaPro extends javax.swing.JFrame {
 
         carregarTabela(imovelDAO.listarPorProprietario(proprietario.getIdProprietario()));
     }
-    
+
     private void btnBuscarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBuscarActionPerformed
-        if (proprietario == null) return;
+        if (proprietario == null) {
+            return;
+        }
 
         String termo = txtBuscar.getText().trim().toLowerCase();
         List<Imovel> todosDoProprietario = imovelDAO.listarPorProprietario(proprietario.getIdProprietario());
@@ -155,10 +157,19 @@ public class TelaBuscaPro extends javax.swing.JFrame {
     }//GEN-LAST:event_btnBuscarActionPerformed
 
     private void btnConfigActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnConfigActionPerformed
-         new CadImovel().setVisible(true);
+        int linha = tbImovel.getSelectedRow();
+        Imovel imovelSelecionado = (linha == -1 || imoveisCarregados == null) ? null : imoveisCarregados.get(linha);
+
+        new CadImovel(usuarioLogado, imovelSelecionado, null).setVisible(true);
     }//GEN-LAST:event_btnConfigActionPerformed
 
-     private void carregarTabela(List<Imovel> imoveis) {
+    public void atualizarTabela() {
+        if (proprietario != null) {
+            carregarTabela(imovelDAO.listarPorProprietario(proprietario.getIdProprietario()));
+        }
+    }
+
+    private void carregarTabela(List<Imovel> imoveis) {
         imoveisCarregados = imoveis;
 
         DefaultTableModel modelo = (DefaultTableModel) tbImovel.getModel();
@@ -166,11 +177,12 @@ public class TelaBuscaPro extends javax.swing.JFrame {
 
         for (Imovel im : imoveis) {
             modelo.addRow(new Object[]{
-                    im.getDescricao(), im.getEndereco(), im.getTipoDescricao(),
-                    im.getStatusDescricao(), im.getPreco()
+                im.getDescricao(), im.getEndereco(), im.getTipoDescricao(),
+                im.getStatusDescricao(), im.getPreco()
             });
         }
     }
+
     /**
      * @param args the command line arguments
      */
@@ -192,9 +204,11 @@ public class TelaBuscaPro extends javax.swing.JFrame {
         }
         //</editor-fold>
 
-Usuario usuarioLogado = new Usuario();
+        Usuario usuarioLogado = new Usuario();
 
-java.awt.EventQueue.invokeLater(() -> { new TelaBuscaPro(usuarioLogado).setVisible(true);});
+        java.awt.EventQueue.invokeLater(() -> {
+            new TelaBuscaPro(usuarioLogado).setVisible(true);
+        });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -206,6 +220,5 @@ java.awt.EventQueue.invokeLater(() -> { new TelaBuscaPro(usuarioLogado).setVisib
     private javax.swing.JTable tbImovel;
     private javax.swing.JTextField txtBuscar;
     // End of variables declaration//GEN-END:variables
-
 
 }

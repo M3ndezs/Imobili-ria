@@ -8,9 +8,13 @@ import DAO.AdministradorDAO;
 import DAO.ClienteDAO;
 import DAO.ProprietarioDAO;
 import DAO.UsuarioDAO;
+import Model.Administrador;
+import Model.Cliente;
+import Model.Proprietario;
 import Model.Usuario;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -18,7 +22,7 @@ import javax.swing.table.DefaultTableModel;
  * @author aluno.saolucas
  */
 public class TelaADM extends javax.swing.JFrame {
-    
+
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(TelaADM.class.getName());
 
     /**
@@ -27,12 +31,13 @@ public class TelaADM extends javax.swing.JFrame {
     public TelaADM() {
         initComponents();
     }
-private List<Usuario> usuariosCarregados;   // guarda o objeto Usuario completo de cada linha
-private List<String> papeisCarregados; 
-private final UsuarioDAO usuarioDAO = new UsuarioDAO();
-private final AdministradorDAO administradorDAO = new AdministradorDAO();
-private final ProprietarioDAO proprietarioDAO = new ProprietarioDAO();
-private final ClienteDAO clienteDAO = new ClienteDAO();
+    private List<? extends Usuario> usuariosCarregados;   // guarda o objeto Usuario completo de cada linha
+    private List<String> papeisCarregados;
+    private final UsuarioDAO usuarioDAO = new UsuarioDAO();
+    private final AdministradorDAO administradorDAO = new AdministradorDAO();
+    private final ProprietarioDAO proprietarioDAO = new ProprietarioDAO();
+    private final ClienteDAO clienteDAO = new ClienteDAO();
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -77,6 +82,15 @@ private final ClienteDAO clienteDAO = new ClienteDAO();
                 "Nome", "Email", "Telefone", "Papel"
             }
         ));
+        tbUsu.addAncestorListener(new javax.swing.event.AncestorListener() {
+            public void ancestorAdded(javax.swing.event.AncestorEvent evt) {
+                tbUsuAncestorAdded(evt);
+            }
+            public void ancestorMoved(javax.swing.event.AncestorEvent evt) {
+            }
+            public void ancestorRemoved(javax.swing.event.AncestorEvent evt) {
+            }
+        });
         tbUsu.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 tbUsuMouseClicked(evt);
@@ -85,6 +99,7 @@ private final ClienteDAO clienteDAO = new ClienteDAO();
         jScrollPane1.setViewportView(tbUsu);
 
         cbPapel.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Cliente", "Proprietário", "Administrador" }));
+        cbPapel.addItemListener(this::cbPapelItemStateChanged);
         cbPapel.addActionListener(this::cbPapelActionPerformed);
 
         jLabel3.setFont(new java.awt.Font("Yu Gothic UI Semibold", 3, 14)); // NOI18N
@@ -104,12 +119,15 @@ private final ClienteDAO clienteDAO = new ClienteDAO();
 
         btnCadUsu.setFont(new java.awt.Font("Yu Gothic UI Semibold", 3, 14)); // NOI18N
         btnCadUsu.setText("Cadastrar usuário");
+        btnCadUsu.addActionListener(this::btnCadUsuActionPerformed);
 
         btnEditarUsu.setFont(new java.awt.Font("Yu Gothic UI Semibold", 3, 14)); // NOI18N
         btnEditarUsu.setText("Editar Usuário");
+        btnEditarUsu.addActionListener(this::btnEditarUsuActionPerformed);
 
         btnExcluirUsu.setFont(new java.awt.Font("Yu Gothic UI Semibold", 3, 14)); // NOI18N
         btnExcluirUsu.setText("Excluir Usuário");
+        btnExcluirUsu.addActionListener(this::btnExcluirUsuActionPerformed);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -184,6 +202,10 @@ private final ClienteDAO clienteDAO = new ClienteDAO();
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
+        carregarTabela();
+    }
+
     private void txtNomeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtNomeActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_txtNomeActionPerformed
@@ -193,17 +215,131 @@ private final ClienteDAO clienteDAO = new ClienteDAO();
     }//GEN-LAST:event_cbPapelActionPerformed
 
     private void tbUsuMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tbUsuMouseClicked
-         Usuario selecionado = usuarioSelecionado();
-    if (selecionado == null) return;
+        Usuario selecionado = usuarioSelecionado();
+        if (selecionado == null) {
+            return;
+        }
 
-    txtNome.setText(selecionado.getNome());
-    txtEmail.setText(selecionado.getEmail());
-    txtTel.setText(selecionado.getTelefone());
-    txtSenha.setText("");
+        txtNome.setText(selecionado.getNome());
+        txtEmail.setText(selecionado.getEmail());
+        txtTel.setText(selecionado.getTelefone());
+        txtSenha.setText("");
 
-    int linha = tbUsu.getSelectedRow();
-    cbPapel.setSelectedItem(papeisCarregados.get(linha));
+        int linha = tbUsu.getSelectedRow();
+        cbPapel.setSelectedItem(papeisCarregados.get(linha));
+
     }//GEN-LAST:event_tbUsuMouseClicked
+
+    private void btnCadUsuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCadUsuActionPerformed
+        String nome = txtNome.getText().trim();
+        String email = txtEmail.getText().trim();
+        String senha = txtSenha.getText().trim();
+        String telefone = txtTel.getText().trim();
+        String papel = (String) cbPapel.getSelectedItem();
+
+        if (nome.isEmpty() || email.isEmpty() || senha.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Opa, algo deu errado! por favor, preencha todos os campos obrigatórios!");
+            return;
+        }
+
+        Usuario novoUsuario = new Usuario(0, nome, email, senha, telefone);
+        usuarioDAO.cadastrar(novoUsuario);
+
+        switch (papel) {
+            case "Cliente" ->
+                clienteDAO.cadastrar(new Cliente(0, novoUsuario));
+            case "Proprietário" ->
+                proprietarioDAO.cadastrar(new Proprietario(0, novoUsuario));
+            case "Administrador" ->
+                administradorDAO.cadastrar(new Administrador(0, novoUsuario));
+            default -> {
+                JOptionPane.showMessageDialog(this, "Papel inválido!");
+                return;
+            }
+        }
+
+        JOptionPane.showMessageDialog(this, "Usuário " + novoUsuario.getNome() + " cadastrado com sucesso!");
+
+        limparCampos();
+        carregarTabela();
+    }//GEN-LAST:event_btnCadUsuActionPerformed
+
+
+    private void btnEditarUsuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditarUsuActionPerformed
+        Usuario selecionado = usuarioSelecionado();
+
+        if (selecionado == null) {
+            JOptionPane.showMessageDialog(this, "Opa, algo deu errado! selecione um usuário na tabela!");
+            return;
+        }
+
+        String nome = txtNome.getText().trim();
+        String email = txtEmail.getText().trim();
+        String senha = txtSenha.getText().trim();
+        String telefone = txtTel.getText().trim();
+
+        if (nome.isEmpty() || email.isEmpty() || senha.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Opa, algo deu errado! por favor, preencha todos os campos obrigatórios!");
+            return;
+        }
+
+        selecionado.setNome(nome);
+        selecionado.setEmail(email);
+        selecionado.setSenha(senha);
+        selecionado.setTelefone(telefone);
+
+        boolean sucesso = usuarioDAO.alterar(selecionado);
+
+        if (!sucesso) {
+            JOptionPane.showMessageDialog(this, "Não foi possível atualizar. Esse e-mail já está em uso por outro usuário!");
+            return;
+        }
+
+        JOptionPane.showMessageDialog(this, "Usuário " + selecionado.getNome() + " atualizado com sucesso!");
+
+        limparCampos();
+        carregarTabela();
+    }//GEN-LAST:event_btnEditarUsuActionPerformed
+
+    private void btnExcluirUsuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExcluirUsuActionPerformed
+        Usuario selecionado = usuarioSelecionado();
+        if (selecionado == null) {
+            JOptionPane.showMessageDialog(this, "Opa, algo deu errado! selecione um usuário na tabela!");
+            return;
+        }
+
+        int confirmacao = JOptionPane.showConfirmDialog(this,
+                "Excluir o usuário " + selecionado.getNome() + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        if (confirmacao != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        String papel = (String) cbPapel.getSelectedItem();
+
+        if (selecionado instanceof Cliente c) {
+            clienteDAO.excluir(c.getIdCliente());
+        } else if (selecionado instanceof Proprietario p) {
+            proprietarioDAO.excluir(p.getIdProprietario());
+        } else if (selecionado instanceof Administrador a) {
+            administradorDAO.excluir(a.getIdAdm());
+        }
+
+        usuarioDAO.excluir(selecionado.getId());
+
+        JOptionPane.showMessageDialog(this, "Usuário excluído com sucesso!");
+        limparCampos();
+        carregarTabela();
+    }//GEN-LAST:event_btnExcluirUsuActionPerformed
+
+    private void tbUsuAncestorAdded(javax.swing.event.AncestorEvent evt) {//GEN-FIRST:event_tbUsuAncestorAdded
+        // TODO add your handling code here:
+    }//GEN-LAST:event_tbUsuAncestorAdded
+
+    private void cbPapelItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cbPapelItemStateChanged
+        if (evt.getStateChange() == java.awt.event.ItemEvent.SELECTED) {
+            carregarTabela();
+        }
+    }//GEN-LAST:event_cbPapelItemStateChanged
 
     /**
      * @param args the command line arguments
@@ -229,39 +365,45 @@ private final ClienteDAO clienteDAO = new ClienteDAO();
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> new TelaADM().setVisible(true));
     }
-private void carregarTabela() {
-    usuariosCarregados = usuarioDAO.listar();
-    papeisCarregados = new ArrayList<>();
 
-    DefaultTableModel modelo = (DefaultTableModel) tbUsu.getModel();
-    modelo.setRowCount(0);
+    private void carregarTabela() {
+        String papel = (String) cbPapel.getSelectedItem();
 
-    for (Usuario u : usuariosCarregados) {
-        String papel;
-        if (administradorDAO.buscarPorIdUsu(u.getId()) != null) papel = "Administrador";
-        else if (proprietarioDAO.buscarPorIdUsu(u.getId()) != null) papel = "Proprietário";
-        else if (clienteDAO.buscarPorIdUsu(u.getId()) != null) papel = "Cliente";
-        else papel = "Sem papel";
+        switch (papel) {
+            case "Cliente" ->
+                usuariosCarregados = clienteDAO.listarTodos();
+            case "Proprietário" ->
+                usuariosCarregados = proprietarioDAO.listarTodos();
+            case "Administrador" ->
+                usuariosCarregados = administradorDAO.listarTodos();
+            default -> {
+                JOptionPane.showMessageDialog(this, "Opa, algo deu errado! papel inválido selecionado!");
+                return;
+            }
+        }
 
-        papeisCarregados.add(papel);
-        modelo.addRow(new Object[]{ u.getNome(), u.getEmail(), u.getTelefone(), papel });
+        DefaultTableModel modelo = (DefaultTableModel) tbUsu.getModel();
+        modelo.setRowCount(0);
+
+        for (Usuario u : usuariosCarregados) {
+            modelo.addRow(new Object[]{u.getNome(), u.getEmail(), u.getTelefone()});
+        }
     }
-}
 
-private Usuario usuarioSelecionado() {
-    int linha = tbUsu.getSelectedRow();
-    if (linha == -1 || usuariosCarregados == null || linha >= usuariosCarregados.size()) {
-        return null;
+    private Usuario usuarioSelecionado() {
+        int linha = tbUsu.getSelectedRow();
+        if (linha == -1 || usuariosCarregados == null || linha >= usuariosCarregados.size()) {
+            return null;
+        }
+        return usuariosCarregados.get(linha);
     }
-    return usuariosCarregados.get(linha);
-}
 
-private void limparCampos() {
-    txtNome.setText("");
-    txtEmail.setText("");
-    txtSenha.setText("");
-    txtTel.setText("");
-}
+    private void limparCampos() {
+        txtNome.setText("");
+        txtEmail.setText("");
+        txtSenha.setText("");
+        txtTel.setText("");
+    }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnCadUsu;
     private javax.swing.JButton btnEditarUsu;

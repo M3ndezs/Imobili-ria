@@ -4,18 +4,39 @@
  */
 package View;
 
+import DAO.ClienteDAO;
+import DAO.ImovelDAO;
+import DAO.VisitaDAO;
+import Model.Cliente;
+import Model.Imovel;
+import Model.Usuario;
+import Model.Visita;
+import java.time.LocalDateTime;
+import java.util.List;
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
+
 /**
  *
  * @author aluno.saolucas
  */
 public class TelaBusca extends javax.swing.JFrame {
-    
+
+    private final ImovelDAO imovelDAO = new ImovelDAO();
+    private final ClienteDAO clienteDAO = new ClienteDAO();
+    private final VisitaDAO visitaDAO = new VisitaDAO();
+
+    private final Usuario usuarioLogado;
+    private Cliente cliente;
+    private List<Imovel> imoveisCarregados;
+
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(TelaBusca.class.getName());
 
     /**
      * Creates new form TelaBusca
      */
-    public TelaBusca() {
+    public TelaBusca(Usuario usuarioLogado) {
+        this.usuarioLogado = usuarioLogado;
         initComponents();
     }
 
@@ -29,16 +50,16 @@ public class TelaBusca extends javax.swing.JFrame {
     private void initComponents() {
 
         jScrollPane1 = new javax.swing.JScrollPane();
-        tbImovel = new javax.swing.JTable();
+        tblImovel = new javax.swing.JTable();
         txtBuscar = new javax.swing.JTextField();
         btnBuscar = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
+        btnAgendar = new javax.swing.JButton();
         jLabel2 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        tbImovel.setModel(new javax.swing.table.DefaultTableModel(
+        tblImovel.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null, null},
                 {null, null, null, null, null},
@@ -49,14 +70,15 @@ public class TelaBusca extends javax.swing.JFrame {
                 "Descrição", "Endereço", "Tipo", "Status", "Preço"
             }
         ));
-        jScrollPane1.setViewportView(tbImovel);
+        jScrollPane1.setViewportView(tblImovel);
 
         btnBuscar.setText("Buscar");
         btnBuscar.addActionListener(this::btnBuscarActionPerformed);
 
         jLabel1.setText("Buscar por Descrição/ Endereço:");
 
-        jButton1.setText("Agendar Visita");
+        btnAgendar.setText("Agendar Visita");
+        btnAgendar.addActionListener(this::btnAgendarActionPerformed);
 
         jLabel2.setFont(new java.awt.Font("Yu Gothic UI Semibold", 3, 24)); // NOI18N
         jLabel2.setText("Buscar por Imóvel");
@@ -80,7 +102,7 @@ public class TelaBusca extends javax.swing.JFrame {
                                         .addComponent(txtBuscar, javax.swing.GroupLayout.PREFERRED_SIZE, 342, javax.swing.GroupLayout.PREFERRED_SIZE)))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 578, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jButton1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 165, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(btnAgendar, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 165, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(18, 18, 18))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 233, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -100,16 +122,67 @@ public class TelaBusca extends javax.swing.JFrame {
                 .addGap(18, 18, 18)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 227, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addComponent(jButton1)
+                .addComponent(btnAgendar)
                 .addGap(39, 39, 39))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
+        cliente = clienteDAO.buscarPorIdUsu(usuarioLogado.getId());
+
+        if (cliente == null) {
+            JOptionPane.showMessageDialog(this, "Opa, algo deu errado! usuário logado não é um cliente cadastrado!");
+            return;
+        }
+    }
+
     private void btnBuscarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBuscarActionPerformed
-        // TODO add your handling code here:
+        String termo = txtBuscar.getText().trim();
+
+        if (termo.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Opa, algo deu errado! digite algo para buscar!");
+            return;
+        }
+
+        carregarTabela(imovelDAO.buscar(termo)); // agora só filtra por descrição
     }//GEN-LAST:event_btnBuscarActionPerformed
+
+    private void btnAgendarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAgendarActionPerformed
+        if (cliente == null) {
+            JOptionPane.showMessageDialog(this, "Opa, algo deu errado! usuário logado não é um cliente cadastrado!");
+            return;
+        }
+
+        int linha = tblImovel.getSelectedRow();
+        if (linha == -1 || imoveisCarregados == null || linha >= imoveisCarregados.size()) {
+            JOptionPane.showMessageDialog(this, "Opa, algo deu errado! selecione um imóvel na tabela!");
+            return;
+        }
+
+        Imovel imovelSelecionado = imoveisCarregados.get(linha);
+
+        Visita visita = new Visita(0, cliente.getIdCliente(), imovelSelecionado.getIdImovel(), LocalDateTime.now().plusDays(1));
+        visitaDAO.agendar(visita);
+
+        JOptionPane.showMessageDialog(this, "Visita agendada com sucesso para " + visita.getData() + "!");
+
+    }//GEN-LAST:event_btnAgendarActionPerformed
+
+    private void carregarTabela(List<Imovel> imoveis) {
+        imoveisCarregados = imoveis;
+
+        DefaultTableModel modelo = (DefaultTableModel) tblImovel.getModel();
+        modelo.setRowCount(0);
+
+        for (Imovel im : imoveis) {
+            modelo.addRow(new Object[]{
+                im.getDescricao(), im.getEndereco(), im.getTipoDescricao(),
+                im.getStatusDescricao(), im.getPreco()
+            });
+        }
+    }
 
     /**
      * @param args the command line arguments
@@ -131,18 +204,19 @@ public class TelaBusca extends javax.swing.JFrame {
             logger.log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
-
+        Usuario usuarioLogado = new Usuario();
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(() -> new TelaBusca().setVisible(true));
+        java.awt.EventQueue.invokeLater(() -> new TelaBusca(usuarioLogado).setVisible(true));
+
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnAgendar;
     private javax.swing.JButton btnBuscar;
-    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTable tbImovel;
+    private javax.swing.JTable tblImovel;
     private javax.swing.JTextField txtBuscar;
     // End of variables declaration//GEN-END:variables
 }

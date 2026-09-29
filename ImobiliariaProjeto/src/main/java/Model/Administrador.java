@@ -6,16 +6,17 @@ package Model;
 
 public class Administrador extends Usuario {
     
+   
     private int idAdm;
 
     public Administrador() {
     }
 
-    public Administrador(int idProprietario, Usuario usuario) {
+    public Administrador(int idAdm, Usuario usuario) {   // <-- trocado idProprietario por idAdm
+        super(usuario.getId(), usuario.getNome(), usuario.getEmail(),
+              usuario.getSenha(), usuario.getTelefone());
 
-        super(usuario.getId(), usuario.getNome(), usuario.getEmail(), usuario.getSenha(), usuario.getTelefone());
-
-        this.idAdm = idAdm;
+        this.idAdm = idAdm;   // agora bate certinho com o parâmetro
     }
 
     public int getIdAdm() {
@@ -25,7 +26,8 @@ public class Administrador extends Usuario {
     public void setIdAdm(int idAdm) {
         this.idAdm = idAdm;
     }
-  public int getIdUsu(){
-      return getId();
-  }
+
+    public int getIdUsu() {
+        return getId();
+    }
 }

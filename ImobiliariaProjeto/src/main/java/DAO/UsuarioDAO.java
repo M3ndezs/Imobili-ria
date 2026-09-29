@@ -9,48 +9,57 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
 
 public class UsuarioDAO {
     
-    public void cadastrar( Usuario usuario){
-        String sql = "INSERT INTO usuario (nome, email, senha, telefone) VALUES (?, ?, ?, ?)";
-        
-         try (Connection conexao = Conexao.conectar(); 
-                 PreparedStatement comando = conexao.prepareStatement(sql)) {
+    public boolean cadastrar( Usuario usuario){
+           String sql = "INSERT INTO usuario (nome, email, senha, telefone) VALUES (?, ?, ?, ?)";
 
-            comando.setString(1, usuario.getNome());
-            comando.setString(2, usuario.getEmail());
-            comando.setString(3, usuario.getSenha());
-            comando.setString(4, usuario.getTelefone());
-            comando.executeUpdate();
+    try (Connection conexao = Conexao.conectar();
+         PreparedStatement comando = conexao.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-            System.out.println("Usuario cadastrado com sucesso!");
-        } catch (SQLException e) {
-            System.out.println("Erro ao cadastrar Usuario " + e.getMessage());
+        comando.setString(1, usuario.getNome());
+        comando.setString(2, usuario.getEmail());
+        comando.setString(3, usuario.getSenha());
+        comando.setString(4, usuario.getTelefone());
+        comando.executeUpdate();
+
+        try (ResultSet chaves = comando.getGeneratedKeys()) {
+            if (chaves.next()) usuario.setId(chaves.getInt(1));
         }
+
+        System.out.println("Usuário cadastrado com sucesso!");
+        return true;
+    } catch (SQLException e) {
+        System.out.println("Erro ao cadastrar usuário: " + e.getMessage());
+        return false;
+    }
     }
     
     
-     public void alterar(Usuario usuario) {
-        String sql = "UPDATE usuario SET nome = ?, email = ?, senha = ?, telefone = ? WHERE id = ?";
+     public boolean alterar(Usuario usuario) {
+        String sql = "UPDATE usuario SET nome=?, email=?, senha=?, telefone=? WHERE id=?";
 
-        try (Connection conexao = Conexao.conectar();
-             PreparedStatement comando = conexao.prepareStatement(sql)) {
+    try (Connection conexao = Conexao.conectar();
+         PreparedStatement comando = conexao.prepareStatement(sql)) {
 
-            comando.setString(1, usuario.getNome());
-            comando.setString(2, usuario.getEmail());
-            comando.setString(3, usuario.getSenha());
-            comando.setString(4, usuario.getTelefone());
-            comando.setInt(5, usuario.getId());
-            comando.executeUpdate();
+        comando.setString(1, usuario.getNome());
+        comando.setString(2, usuario.getEmail());
+        comando.setString(3, usuario.getSenha());
+        comando.setString(4, usuario.getTelefone());
+        comando.setInt(5, usuario.getId());
+        comando.executeUpdate();
 
-            System.out.println("Usuário atualizado com sucesso!");
-        } catch (SQLException e) {
-            System.out.println("Erro ao atualizar usuário: " + e.getMessage());
-        }
+        System.out.println("Usuário atualizado com sucesso!");
+        return true;
+    } catch (SQLException e) {
+        System.out.println("Erro ao atualizar usuário: " + e.getMessage());
+        return false;
+    }
     }
 
     

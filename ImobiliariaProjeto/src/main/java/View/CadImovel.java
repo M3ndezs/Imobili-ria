@@ -4,18 +4,36 @@
  */
 package View;
 
+import DAO.ImovelDAO;
+import DAO.ProprietarioDAO;
+import Model.Imovel;
+import Model.Proprietario;
+import Model.Usuario;
+import javax.swing.JOptionPane;
+
 /**
  *
  * @author aluno.saolucas
  */
 public class CadImovel extends javax.swing.JFrame {
-    
+
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(CadImovel.class.getName());
 
-    /**
-     * Creates new form CadImovel
-     */
-    public CadImovel() {
+    private final ImovelDAO imovelDAO = new ImovelDAO();
+    private final ProprietarioDAO proprietarioDAO = new ProprietarioDAO();
+
+    // Recebidos via construtor - "quem" está usando esta tela e "o que" ela está editando
+    private final Usuario usuarioLogado;
+    private Imovel imovelEmEdicao;       // null = modo cadastro novo; preenchido = modo edição/exclusão
+    private final TelaBuscaPro telaOrigem; // pode ser null, se a tela for aberta sem vir de lá
+
+    // Descoberto dentro do formWindowOpened, a partir do usuarioLogado
+    private Proprietario proprietario;
+
+    public CadImovel(Usuario usuarioLogado, Imovel imovelSelecionado, TelaBuscaPro telaOrigem) {
+        this.usuarioLogado = usuarioLogado;
+        this.imovelEmEdicao = imovelSelecionado;
+        this.telaOrigem = telaOrigem;
         initComponents();
     }
 
@@ -30,9 +48,9 @@ public class CadImovel extends javax.swing.JFrame {
 
         jLabel2 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTextArea1 = new javax.swing.JTextArea();
-        chkTipo = new javax.swing.JComboBox<>();
-        chkStatus = new javax.swing.JComboBox<>();
+        txtDescri = new javax.swing.JTextArea();
+        cbTipo = new javax.swing.JComboBox<>();
+        cbStatus = new javax.swing.JComboBox<>();
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
@@ -49,14 +67,15 @@ public class CadImovel extends javax.swing.JFrame {
         jLabel2.setFont(new java.awt.Font("Yu Gothic UI Semibold", 3, 24)); // NOI18N
         jLabel2.setText("Cadastro Imóveis");
 
-        jTextArea1.setColumns(20);
-        jTextArea1.setRows(5);
-        jScrollPane1.setViewportView(jTextArea1);
+        txtDescri.setColumns(20);
+        txtDescri.setRows(5);
+        jScrollPane1.setViewportView(txtDescri);
 
-        chkTipo.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Aluguel", "Venda", " " }));
+        cbTipo.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Aluguel", "Venda", " " }));
+        cbTipo.addActionListener(this::cbTipoActionPerformed);
 
-        chkStatus.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Disponivel", "Indisponivel", " " }));
-        chkStatus.addActionListener(this::chkStatusActionPerformed);
+        cbStatus.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Disponivel", "Indisponivel", " " }));
+        cbStatus.addActionListener(this::cbStatusActionPerformed);
 
         jLabel3.setFont(new java.awt.Font("Yu Gothic UI Semibold", 3, 14)); // NOI18N
         jLabel3.setText("Status");
@@ -79,8 +98,10 @@ public class CadImovel extends javax.swing.JFrame {
         btnCad.addActionListener(this::btnCadActionPerformed);
 
         btnEditar.setText("Editar");
+        btnEditar.addActionListener(this::btnEditarActionPerformed);
 
         btnExcluir.setText("Excluir");
+        btnExcluir.addActionListener(this::btnExcluirActionPerformed);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -108,11 +129,11 @@ public class CadImovel extends javax.swing.JFrame {
                             .addComponent(txtEndereco, javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(chkTipo, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(cbTipo, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 196, javax.swing.GroupLayout.PREFERRED_SIZE))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(chkStatus, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(cbStatus, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 78, javax.swing.GroupLayout.PREFERRED_SIZE))))
                         .addGap(59, 59, 59))
                     .addGroup(layout.createSequentialGroup()
@@ -142,8 +163,8 @@ public class CadImovel extends javax.swing.JFrame {
                     .addComponent(jLabel6))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(chkTipo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(chkStatus, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(cbTipo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(cbStatus, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(60, 60, 60)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(layout.createSequentialGroup()
@@ -164,17 +185,169 @@ public class CadImovel extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void chkStatusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chkStatusActionPerformed
+    private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
+        System.out.println(">>> formWindowOpened rodou! usuarioLogado = " + usuarioLogado);
+
+        proprietario = proprietarioDAO.buscarPorIdUsu(usuarioLogado.getId());
+
+        System.out.println(">>> proprietario encontrado = " + proprietario);
+
+        if (proprietario == null) {
+            JOptionPane.showMessageDialog(this, "Opa, algo deu errado! usuário logado não é um proprietário cadastrado!");
+            this.dispose();
+            return;
+        }
+
+        if (imovelEmEdicao != null) {
+            preencherFormulario(imovelEmEdicao);
+        }
+    }
+
+    private void cbStatusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbStatusActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_chkStatusActionPerformed
+    }//GEN-LAST:event_cbStatusActionPerformed
 
     private void txtPrecoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtPrecoActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_txtPrecoActionPerformed
 
     private void btnCadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCadActionPerformed
-        // TODO add your handling code here:
+
+        String descricao = txtDescri.getText().trim();
+        String endereco = txtEndereco.getText().trim();
+        String precoTexto = txtPreco.getText().trim();
+
+        if (descricao.isEmpty() || endereco.isEmpty() || precoTexto.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Opa, algo deu errado! por favor, preencha todos os campos obrigatórios!");
+            return;
+        }
+
+        try {
+            double preco = Double.parseDouble(precoTexto.replace(",", "."));
+
+            Imovel novoImovel = new Imovel(
+                    0,
+                    proprietario.getIdProprietario(),
+                    descricao,
+                    cbTipo.getSelectedItem().equals("Venda"),
+                    preco,
+                    endereco,
+                    cbStatus.getSelectedItem().equals("Disponivel")
+            );
+
+            boolean sucesso = imovelDAO.cadastrar(novoImovel);
+
+            if (!sucesso) {
+                JOptionPane.showMessageDialog(this, "Não foi possível cadastrar o imóvel.");
+                return;
+            }
+
+            JOptionPane.showMessageDialog(this, "Imóvel cadastrado com sucesso!");
+            limparCampos();
+
+            if (telaOrigem != null) {
+                telaOrigem.atualizarTabela(); // <- avisa a TelaBuscaPro pra recarregar
+            }
+
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Opa, algo deu errado! digite um valor numérico válido no campo Preço!");
+        }
     }//GEN-LAST:event_btnCadActionPerformed
+
+    private void btnEditarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditarActionPerformed
+        if (imovelEmEdicao == null) {
+            JOptionPane.showMessageDialog(this, "Opa, algo deu errado! nenhum imóvel selecionado para editar! "
+                    + "Volte na tela anterior, selecione um imóvel na tabela e clique em Configurações Imóvel novamente.");
+            return;
+        }
+
+        String descricao = txtDescri.getText().trim();
+        String endereco = txtEndereco.getText().trim();
+        String precoTexto = txtPreco.getText().trim();
+
+        if (descricao.isEmpty() || endereco.isEmpty() || precoTexto.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Opa, algo deu errado! por favor, preencha todos os campos obrigatórios!");
+            return;
+        }
+
+        try {
+            double preco = Double.parseDouble(precoTexto.replace(",", "."));
+
+            imovelEmEdicao.setDescricao(descricao);
+            imovelEmEdicao.setEndereco(endereco);
+            imovelEmEdicao.setPreco(preco);
+            imovelEmEdicao.setTipo(cbTipo.getSelectedItem().equals("Venda"));
+            imovelEmEdicao.setStatus(cbStatus.getSelectedItem().equals("Disponivel"));
+
+            boolean sucesso = imovelDAO.alterar(imovelEmEdicao);
+
+            if (!sucesso) {
+                JOptionPane.showMessageDialog(this, "Não foi possível atualizar o imóvel.");
+                return;
+            }
+
+            JOptionPane.showMessageDialog(this, "Imóvel atualizado com sucesso!");
+            limparCampos();
+
+            if (telaOrigem != null) {
+                telaOrigem.atualizarTabela();
+            }
+            this.dispose();
+
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Opa, algo deu errado! digite um valor numérico válido no campo Preço!");
+        }
+    }//GEN-LAST:event_btnEditarActionPerformed
+
+    private void btnExcluirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExcluirActionPerformed
+        if (imovelEmEdicao == null) {
+            JOptionPane.showMessageDialog(this, "Opa, algo deu errado! nenhum imóvel selecionado para excluir!");
+            return;
+        }
+
+        int confirmacao = JOptionPane.showConfirmDialog(this,
+                "Excluir o imóvel \"" + imovelEmEdicao.getDescricao() + "\"?", "Confirmar", JOptionPane.YES_NO_OPTION);
+
+        if (confirmacao != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        boolean sucesso = imovelDAO.excluir(imovelEmEdicao.getIdImovel());
+
+        if (!sucesso) {
+            JOptionPane.showMessageDialog(this, "Não foi possível excluir o imóvel.");
+            return;
+        }
+
+        JOptionPane.showMessageDialog(this, "Imóvel excluído com sucesso!");
+        limparCampos();
+
+        if (telaOrigem != null) {
+            telaOrigem.atualizarTabela();
+        }
+        this.dispose();
+    }//GEN-LAST:event_btnExcluirActionPerformed
+
+    private void cbTipoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbTipoActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_cbTipoActionPerformed
+
+    private void preencherFormulario(Imovel imovel) {
+        txtDescri.setText(imovel.getDescricao());
+        txtEndereco.setText(imovel.getEndereco());
+        txtPreco.setText(String.valueOf(imovel.getPreco()));
+        cbTipo.setSelectedItem(imovel.getTipoDescricao());
+        cbStatus.setSelectedItem(imovel.getStatusDescricao());
+    }
+
+    private void limparCampos() {
+        txtDescri.setText("");
+        txtEndereco.setText("");
+        txtPreco.setText("");
+        cbTipo.setSelectedIndex(0);
+        cbStatus.setSelectedIndex(0);
+        imovelEmEdicao = null;
+    }
 
     /**
      * @param args the command line arguments
@@ -197,16 +370,20 @@ public class CadImovel extends javax.swing.JFrame {
         }
         //</editor-fold>
 
+        Usuario usuarioLogado = new Usuario();
+        Imovel imovelSelecionado = new Imovel();
+        TelaBuscaPro telaOrigem = null;
+
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(() -> new CadImovel().setVisible(true));
+        java.awt.EventQueue.invokeLater(() -> new CadImovel(usuarioLogado, imovelSelecionado, telaOrigem).setVisible(true));
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnCad;
     private javax.swing.JButton btnEditar;
     private javax.swing.JButton btnExcluir;
-    private javax.swing.JComboBox<String> chkStatus;
-    private javax.swing.JComboBox<String> chkTipo;
+    private javax.swing.JComboBox<String> cbStatus;
+    private javax.swing.JComboBox<String> cbTipo;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -214,7 +391,7 @@ public class CadImovel extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTextArea jTextArea1;
+    private javax.swing.JTextArea txtDescri;
     private javax.swing.JTextField txtEndereco;
     private javax.swing.JTextField txtPreco;
     // End of variables declaration//GEN-END:variables
