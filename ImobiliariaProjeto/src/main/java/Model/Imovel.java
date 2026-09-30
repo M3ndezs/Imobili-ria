@@ -22,7 +22,7 @@ public class Imovel {
     public Imovel() {
     }
 
-    public Imovel(int id, int idProp, String descricao, boolean tipo, double preco, String endereco, boolean status) {
+    public Imovel(int idImovel, int idProp, String descricao, boolean tipo, double preco, String endereco, boolean status) {
         this.idImovel = idImovel;
         this.idProp = idProp;
         this.descricao = descricao;
@@ -36,7 +36,7 @@ public class Imovel {
         return idImovel;
     }
 
-    public void setIdImovel(int id) {
+    public void setIdImovel(int idImovel) {
         this.idImovel = idImovel;
     }
 

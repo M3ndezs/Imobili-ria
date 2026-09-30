@@ -19,17 +19,21 @@ public class CadImovel extends javax.swing.JFrame {
 
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(CadImovel.class.getName());
 
+    // DAOs - criados uma vez, reutilizados em todos os métodos
     private final ImovelDAO imovelDAO = new ImovelDAO();
     private final ProprietarioDAO proprietarioDAO = new ProprietarioDAO();
 
-    // Recebidos via construtor - "quem" está usando esta tela e "o que" ela está editando
+    // Recebidos via construtor
     private final Usuario usuarioLogado;
-    private Imovel imovelEmEdicao;       // null = modo cadastro novo; preenchido = modo edição/exclusão
+    private Imovel imovelEmEdicao;         // null = modo cadastro novo; preenchido = modo edição/exclusão
     private final TelaBuscaPro telaOrigem; // pode ser null, se a tela for aberta sem vir de lá
 
     // Descoberto dentro do formWindowOpened, a partir do usuarioLogado
     private Proprietario proprietario;
 
+    /**
+     * Creates new form CadImovel
+     */
     public CadImovel(Usuario usuarioLogado, Imovel imovelSelecionado, TelaBuscaPro telaOrigem) {
         this.usuarioLogado = usuarioLogado;
         this.imovelEmEdicao = imovelSelecionado;
@@ -63,6 +67,11 @@ public class CadImovel extends javax.swing.JFrame {
         btnExcluir = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowOpened(java.awt.event.WindowEvent evt) {
+                formWindowOpened(evt);
+            }
+        });
 
         jLabel2.setFont(new java.awt.Font("Yu Gothic UI Semibold", 3, 24)); // NOI18N
         jLabel2.setText("Cadastro Imóveis");
@@ -185,23 +194,6 @@ public class CadImovel extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
-        System.out.println(">>> formWindowOpened rodou! usuarioLogado = " + usuarioLogado);
-
-        proprietario = proprietarioDAO.buscarPorIdUsu(usuarioLogado.getId());
-
-        System.out.println(">>> proprietario encontrado = " + proprietario);
-
-        if (proprietario == null) {
-            JOptionPane.showMessageDialog(this, "Opa, algo deu errado! usuário logado não é um proprietário cadastrado!");
-            this.dispose();
-            return;
-        }
-
-        if (imovelEmEdicao != null) {
-            preencherFormulario(imovelEmEdicao);
-        }
-    }
 
     private void cbStatusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbStatusActionPerformed
         // TODO add your handling code here:
@@ -212,7 +204,6 @@ public class CadImovel extends javax.swing.JFrame {
     }//GEN-LAST:event_txtPrecoActionPerformed
 
     private void btnCadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCadActionPerformed
-
         String descricao = txtDescri.getText().trim();
         String endereco = txtEndereco.getText().trim();
         String precoTexto = txtPreco.getText().trim();
@@ -232,7 +223,7 @@ public class CadImovel extends javax.swing.JFrame {
                     cbTipo.getSelectedItem().equals("Venda"),
                     preco,
                     endereco,
-                    cbStatus.getSelectedItem().equals("Disponivel")
+                    cbStatus.getSelectedItem().equals("Disponível")
             );
 
             boolean sucesso = imovelDAO.cadastrar(novoImovel);
@@ -246,7 +237,7 @@ public class CadImovel extends javax.swing.JFrame {
             limparCampos();
 
             if (telaOrigem != null) {
-                telaOrigem.atualizarTabela(); // <- avisa a TelaBuscaPro pra recarregar
+                telaOrigem.atualizarTabela();
             }
 
         } catch (NumberFormatException e) {
@@ -255,51 +246,63 @@ public class CadImovel extends javax.swing.JFrame {
     }//GEN-LAST:event_btnCadActionPerformed
 
     private void btnEditarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditarActionPerformed
-        if (imovelEmEdicao == null) {
-            JOptionPane.showMessageDialog(this, "Opa, algo deu errado! nenhum imóvel selecionado para editar! "
-                    + "Volte na tela anterior, selecione um imóvel na tabela e clique em Configurações Imóvel novamente.");
+       System.out.println(">>> Botão Editar clicado!");
+    System.out.println(">>> imovelEmEdicao = " + imovelEmEdicao);
+
+    if (imovelEmEdicao == null) {
+        JOptionPane.showMessageDialog(this, "Opa, algo deu errado! nenhum imóvel selecionado para editar!");
+        return;
+    }
+
+    String descricao = txtDescri.getText().trim();
+    String endereco = txtEndereco.getText().trim();
+    String precoTexto = txtPreco.getText().trim();
+
+    System.out.println(">>> descricao=[" + descricao + "] endereco=[" + endereco + "] preco=[" + precoTexto + "]");
+
+    if (descricao.isEmpty() || endereco.isEmpty() || precoTexto.isEmpty()) {
+        JOptionPane.showMessageDialog(this, "Opa, algo deu errado! por favor, preencha todos os campos obrigatórios!");
+        return;
+    }
+
+    try {
+        double preco = Double.parseDouble(precoTexto.replace(",", "."));
+
+        imovelEmEdicao.setDescricao(descricao);
+        imovelEmEdicao.setEndereco(endereco);
+        imovelEmEdicao.setPreco(preco);
+        imovelEmEdicao.setTipo(cbTipo.getSelectedItem().equals("Venda"));
+        imovelEmEdicao.setStatus(cbStatus.getSelectedItem().equals("Disponível"));
+
+        System.out.println(">>> Chamando imovelDAO.alterar() para id=" + imovelEmEdicao.getIdImovel());
+
+        boolean sucesso = imovelDAO.alterar(imovelEmEdicao);
+
+        System.out.println(">>> Resultado do alterar(): " + sucesso);
+
+        if (!sucesso) {
+            JOptionPane.showMessageDialog(this, "Não foi possível atualizar o imóvel.");
             return;
         }
 
-        String descricao = txtDescri.getText().trim();
-        String endereco = txtEndereco.getText().trim();
-        String precoTexto = txtPreco.getText().trim();
+        JOptionPane.showMessageDialog(this, "Imóvel atualizado com sucesso!");
+        limparCampos();
 
-        if (descricao.isEmpty() || endereco.isEmpty() || precoTexto.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Opa, algo deu errado! por favor, preencha todos os campos obrigatórios!");
-            return;
+        if (telaOrigem != null) {
+            telaOrigem.atualizarTabela();
         }
+        this.dispose();
 
-        try {
-            double preco = Double.parseDouble(precoTexto.replace(",", "."));
+    } catch (NumberFormatException e) {
+        System.out.println(">>> Erro de conversão numérica: " + e.getMessage());
+        JOptionPane.showMessageDialog(this, "Opa, algo deu errado! digite um valor numérico válido no campo Preço!");
+    }
 
-            imovelEmEdicao.setDescricao(descricao);
-            imovelEmEdicao.setEndereco(endereco);
-            imovelEmEdicao.setPreco(preco);
-            imovelEmEdicao.setTipo(cbTipo.getSelectedItem().equals("Venda"));
-            imovelEmEdicao.setStatus(cbStatus.getSelectedItem().equals("Disponivel"));
-
-            boolean sucesso = imovelDAO.alterar(imovelEmEdicao);
-
-            if (!sucesso) {
-                JOptionPane.showMessageDialog(this, "Não foi possível atualizar o imóvel.");
-                return;
-            }
-
-            JOptionPane.showMessageDialog(this, "Imóvel atualizado com sucesso!");
-            limparCampos();
-
-            if (telaOrigem != null) {
-                telaOrigem.atualizarTabela();
-            }
-            this.dispose();
-
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Opa, algo deu errado! digite um valor numérico válido no campo Preço!");
-        }
     }//GEN-LAST:event_btnEditarActionPerformed
 
     private void btnExcluirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExcluirActionPerformed
+        System.out.println(">>> Botão Excluir clicado!");
+        
         if (imovelEmEdicao == null) {
             JOptionPane.showMessageDialog(this, "Opa, algo deu errado! nenhum imóvel selecionado para excluir!");
             return;
@@ -331,6 +334,28 @@ public class CadImovel extends javax.swing.JFrame {
     private void cbTipoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbTipoActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_cbTipoActionPerformed
+
+    private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
+
+        System.out.println(">>> formWindowOpened da CadImovel RODOU!");
+        if (usuarioLogado == null) {
+            JOptionPane.showMessageDialog(this, "Opa, algo deu errado! nenhum usuário logado foi informado!");
+            this.dispose();
+            return;
+        }
+
+        proprietario = proprietarioDAO.buscarPorIdUsu(usuarioLogado.getId());
+
+        if (proprietario == null) {
+            JOptionPane.showMessageDialog(this, "Opa, algo deu errado! usuário logado não é um proprietário cadastrado!");
+            this.dispose();
+            return;
+        }
+
+        if (imovelEmEdicao != null) {
+            preencherFormulario(imovelEmEdicao);
+        }
+    }//GEN-LAST:event_formWindowOpened
 
     private void preencherFormulario(Imovel imovel) {
         txtDescri.setText(imovel.getDescricao());

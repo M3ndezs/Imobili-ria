@@ -48,10 +48,10 @@ public class ImovelDAO {
 
             preencher(comando, imovel);
             comando.setInt(7, imovel.getIdImovel());
-            comando.executeUpdate();
+            int linhasAfetadas = comando.executeUpdate();
 
             System.out.println("Imóvel atualizado com sucesso!");
-            return true;
+            return linhasAfetadas > 0; // só retorna true se realmente mudou alguma linha
         } catch (SQLException e) {
             System.out.println("Erro ao atualizar imóvel: " + e.getMessage());
             return false;
@@ -75,23 +75,24 @@ public class ImovelDAO {
     }
 
     public List<Imovel> buscar(String termo) {
-    List<Imovel> imoveis = new ArrayList<>();
-    String sql = "SELECT * FROM imovel WHERE descricao LIKE ? AND status = 1";
+        List<Imovel> imoveis = new ArrayList<>();
+        String sql = "SELECT * FROM imovel WHERE descricao LIKE ? AND status = 0";
 
-    try (Connection conexao = Conexao.conectar();
-         PreparedStatement comando = conexao.prepareStatement(sql)) {
+        try (Connection conexao = Conexao.conectar(); PreparedStatement comando = conexao.prepareStatement(sql)) {
 
-        String like = "%" + termo + "%";
-        comando.setString(1, like);
+            String like = "%" + termo + "%";
+            comando.setString(0, like);
 
-        try (ResultSet resultado = comando.executeQuery()) {
-            while (resultado.next()) imoveis.add(mapear(resultado));
+            try (ResultSet resultado = comando.executeQuery()) {
+                while (resultado.next()) {
+                    imoveis.add(mapear(resultado));
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Erro ao buscar imóveis: " + e.getMessage());
         }
-    } catch (SQLException e) {
-        System.out.println("Erro ao buscar imóveis: " + e.getMessage());
+        return imoveis;
     }
-    return imoveis;
-}
 
     public List<Imovel> listarPorProprietario(int idProp) {
         List<Imovel> imoveis = new ArrayList<>();
@@ -123,6 +124,22 @@ public class ImovelDAO {
 
         } catch (SQLException e) {
             System.out.println("Erro ao listar imóveis: " + e.getMessage());
+        }
+        return imoveis;
+    }
+
+    public List<Imovel> listarDisponiveis() {
+        List<Imovel> imoveis = new ArrayList<>();
+        String sql = "SELECT * FROM imovel WHERE status = 0";
+
+        try (Connection conexao = Conexao.conectar(); PreparedStatement comando = conexao.prepareStatement(sql); ResultSet resultado = comando.executeQuery()) {
+
+            while (resultado.next()) {
+                imoveis.add(mapear(resultado));
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Erro ao listar imóveis disponíveis: " + e.getMessage());
         }
         return imoveis;
     }

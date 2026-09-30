@@ -1,8 +1,10 @@
 DAO\UsuarioDAO.class
+View\TelaBusca$1.class
 Model\Cliente.class
 View\TelaADM$1.class
 Model\Imovel.class
 View\Login.class
+View\TelaBuscaPro$2.class
 View\TelaADM.class
 DAO\ImovelDAO.class
 Controller\VisitaController.class
@@ -12,8 +14,10 @@ DAO\Conexao.class
 Controller\ImovelController.class
 DAO\AdministradorDAO.class
 Model\Usuario.class
+View\TelaBuscaPro$1.class
 Model\Administrador.class
 View\TelaBusca.class
+View\TelaBusca$2.class
 DAO\ProprietarioDAO.class
 View\TelaADM$2.class
 Model\Usuario$UsuarioComPapel.class
@@ -26,4 +30,5 @@ Controller\ProprietarioController.class
 Controller\UsuarioController.class
 DAO\ClienteDAO.class
 Model\Visita.class
+View\CadImovel$1.class
 View\CadastroADM.class

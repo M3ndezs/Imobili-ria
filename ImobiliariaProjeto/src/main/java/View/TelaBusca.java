@@ -38,6 +38,18 @@ public class TelaBusca extends javax.swing.JFrame {
     public TelaBusca(Usuario usuarioLogado) {
         this.usuarioLogado = usuarioLogado;
         initComponents();
+        configurarTabela();
+    }
+
+    private void configurarTabela() {
+        DefaultTableModel modelo = new DefaultTableModel(
+                new Object[]{"Descrição", "Endereço", "Tipo", "Status", "Preço"}, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        tblImovel.setModel(modelo);
     }
 
     /**
@@ -58,6 +70,11 @@ public class TelaBusca extends javax.swing.JFrame {
         jLabel2 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowOpened(java.awt.event.WindowEvent evt) {
+                formWindowOpened(evt);
+            }
+        });
 
         tblImovel.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -129,24 +146,16 @@ public class TelaBusca extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
-        cliente = clienteDAO.buscarPorIdUsu(usuarioLogado.getId());
-
-        if (cliente == null) {
-            JOptionPane.showMessageDialog(this, "Opa, algo deu errado! usuário logado não é um cliente cadastrado!");
-            return;
-        }
-    }
 
     private void btnBuscarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBuscarActionPerformed
         String termo = txtBuscar.getText().trim();
 
         if (termo.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Opa, algo deu errado! digite algo para buscar!");
+            carregarTabela(imovelDAO.listarDisponiveis()); // campo vazio = mostra tudo de novo
             return;
         }
 
-        carregarTabela(imovelDAO.buscar(termo)); // agora só filtra por descrição
+        carregarTabela(imovelDAO.buscar(termo));
     }//GEN-LAST:event_btnBuscarActionPerformed
 
     private void btnAgendarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAgendarActionPerformed
@@ -169,6 +178,25 @@ public class TelaBusca extends javax.swing.JFrame {
         JOptionPane.showMessageDialog(this, "Visita agendada com sucesso para " + visita.getData() + "!");
 
     }//GEN-LAST:event_btnAgendarActionPerformed
+
+    private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
+        if (usuarioLogado == null) {
+            JOptionPane.showMessageDialog(this, "Opa, algo deu errado! nenhum usuário logado foi informado!");
+            this.dispose();
+            return;
+        }
+
+        cliente = clienteDAO.buscarPorIdUsu(usuarioLogado.getId());
+
+        if (cliente == null) {
+            JOptionPane.showMessageDialog(this, "Opa, algo deu errado! usuário logado não é um cliente cadastrado!");
+            this.dispose();
+            return;
+        }
+
+        carregarTabela(imovelDAO.listarDisponiveis()); // lista tudo assim que abre
+
+    }//GEN-LAST:event_formWindowOpened
 
     private void carregarTabela(List<Imovel> imoveis) {
         imoveisCarregados = imoveis;

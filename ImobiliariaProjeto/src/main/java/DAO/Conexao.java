@@ -18,9 +18,16 @@ public class Conexao {
     private static final String url = "jdbc:sqlite:Imobiliaria.db";
 
     public static Connection conectar() throws SQLException {
-        return DriverManager.getConnection(url);
+        Connection conexao = DriverManager.getConnection(url);
+        
+        try (Statement pragma = conexao.createStatement()) {
+            pragma.execute("PRAGMA busy_timeout = 5000;");
+        }
+         return conexao;
     }
 
+    
+    
     public static void inicializarBanco() {
         String sqlUsuario
                 = "CREATE TABLE IF NOT EXISTS usuario (id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT NOT NULL, email TEXT NOT NULL UNIQUE, senha TEXT NOT NULL, telefone TEXT)";
